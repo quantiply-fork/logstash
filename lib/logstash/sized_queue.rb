@@ -38,7 +38,7 @@ class QueueMetric
 
     # java_signature 'int getValue()'
     def getValue
-        q.length
+        @q.length
     end
 end
 
