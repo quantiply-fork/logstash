@@ -49,7 +49,7 @@ class LogStash::SizedQueue < SizedQueue
 end
 
 class QueueMetric
-    include com.codahale.metrics.Gauge
+    include Gauge
     
     def initialize(q)
         @q = q
