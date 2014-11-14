@@ -136,6 +136,7 @@ class LogStash::Inputs::File < LogStash::Inputs::Base
         decorate(event)
         event["host"] = hostname if !event.include?("host")
         event["path"] = path
+        event["tracer"] = {'name' => "file.#{path}"}
         queue << event
       end
     end
