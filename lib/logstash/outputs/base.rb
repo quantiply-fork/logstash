@@ -65,7 +65,7 @@ class LogStash::Outputs::Base < LogStash::Plugin
     return unless @workers > 1
 
     define_singleton_method(:handle, method(:handle_worker))
-    @worker_queue = SizedQueue.new(20,"#{self.class.config_name}.output.queue")
+    @worker_queue = LogStash::SizedQueue.new(20,"#{self.class.config_name}.output.queue")
 
     @worker_threads = @workers.times do |i|
       Thread.new(original_params, @worker_queue) do |params, queue|

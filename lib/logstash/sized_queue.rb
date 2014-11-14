@@ -1,6 +1,7 @@
 # encoding: utf-8
 require "logstash/namespace"
 require "logstash/logging"
+require "java"
 
 require "thread" # for SizedQueue
 class LogStash::SizedQueue < SizedQueue
@@ -10,9 +11,9 @@ class LogStash::SizedQueue < SizedQueue
     def initialize(size, name="")
         super(size)
         @name = name
-        LogStash.metrics_registry.register("queue.size", QueueMetric.new(self))
-        @push_rate = LogStash.metrics_registry.meter("push.rate")
-        @pop_rate = LogStash.metrics_registry.meter("pop.rate")
+        LogStash.metrics_registry.register("#{name}.queue.size", QueueMetric.new(self))
+        @push_rate = LogStash.metrics_registry.meter("#{name}.push.rate")
+        @pop_rate = LogStash.metrics_registry.meter("#{name}.pop.rate")
     end
 
     def push(event)
@@ -27,13 +28,17 @@ class LogStash::SizedQueue < SizedQueue
 
 end
 
-class QueueMetric < Gauge
+class QueueMetric
+    # java_implements 'com.codahale.metrics.Gauge'
+    include com.codahale.metrics.Gauge
+    
     def initialize(q)
         @q = q
     end
 
+    # java_signature 'int getValue()'
     def getValue
-        q.size
+        q.length
     end
 end
 
