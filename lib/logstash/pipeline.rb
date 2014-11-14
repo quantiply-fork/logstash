@@ -10,6 +10,7 @@ require "stud/interval" # gem stud
 
 class LogStash::Pipeline
   def initialize(configstr)
+    LogStash.jmx.start()
     @logger = Cabin::Channel.get(LogStash)
     grammar = LogStashConfigParser.new
     @config = grammar.parse(configstr)
@@ -30,17 +31,19 @@ class LogStash::Pipeline
       raise
     end
 
-    @input_to_filter = SizedQueue.new(20)
+    @input_to_filter = SizedQueue.new(20,"input.to.filter")
 
     # If no filters, pipe inputs directly to outputs
     if !filters?
       @filter_to_output = @input_to_filter
     else
-      @filter_to_output = SizedQueue.new(20)
+      @filter_to_output = SizedQueue.new(20,"filter.to.output")
     end
     @settings = {
       "filter-workers" => 1,
     }
+
+
   end # def initialize
 
   def ready?
