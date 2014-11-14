@@ -139,7 +139,9 @@ class LogStash::Inputs::Syslog < LogStash::Inputs::Base
       client = @tcp.accept
       @tcp_clients << client
       Thread.new(client) do |client|
+        counter = 0
         ip, port = client.peeraddr[3], client.peeraddr[1]
+        count_metric = LogStash.metrics_registry.counter("syslog.input.tcp.#{ip}:#{port}")
         @logger.info("new connection", :client => "#{ip}:#{port}")
         LogStash::Util::set_thread_name("input|syslog|tcp|#{ip}:#{port}}")
         begin
@@ -148,6 +150,9 @@ class LogStash::Inputs::Syslog < LogStash::Inputs::Base
               decorate(event)
               event["host"] = ip
               syslog_relay(event)
+              counter = counter + 1
+              event[:tracer] = {:name = > "tcp.#{ip}:#{port}", :count => counter}
+              count_metric.inc
               output_queue << event
             end
           end
