@@ -32,13 +32,13 @@ class LogStash::Pipeline
       raise
     end
 
-    @input_to_filter = LogStash::SizedQueue.new(20,"input.to.filter")
+    @input_to_filter = LogStash::SizedQueue.new(1000, "input.to.filter")
 
     # If no filters, pipe inputs directly to outputs
     if !filters?
       @filter_to_output = @input_to_filter
     else
-      @filter_to_output = LogStash::SizedQueue.new(20,"filter.to.output")
+      @filter_to_output = LogStash::SizedQueue.new(1000, "filter.to.output")
     end
     @settings = {
       "filter-workers" => 1,
