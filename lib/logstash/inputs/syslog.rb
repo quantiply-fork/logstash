@@ -148,7 +148,7 @@ class LogStash::Inputs::Syslog < LogStash::Inputs::Base
               decorate(event)
               event["host"] = ip
               syslog_relay(event)
-              event["tracer"] = {'name' = > "tcp.#{ip}:#{port}"}
+              event["tracer"] = {'name' => "tcp.#{ip}:#{port}"}
               output_queue << event
             end
           end
