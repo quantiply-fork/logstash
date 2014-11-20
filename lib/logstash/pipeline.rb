@@ -192,13 +192,14 @@ class LogStash::Pipeline
     LogStash::Util::set_thread_name("|worker")
     state_gauge = PluginStateGauge.new
     LogStash.metrics_registry.register("|worker-#{Thread.current.object_id}.lastEvent", state_gauge)
-    process_rate = LogStash.metrics_registry.meter("|worker-#{Thread.current.object_id}.rate")
+    in_rate = LogStash.metrics_registry.meter("|worker-#{Thread.current.object_id}.in.rate")
+    out_rate = LogStash.metrics_registry.meter("|worker-#{Thread.current.object_id}.out.rate")
     
     begin
       while true
         event = @input_to_filter.pop
         state_gauge.update(event)
-        process_rate.mark
+        in_rate.mark
         if event == LogStash::ShutdownSignal
           @input_to_filter.push(event)
           break
@@ -215,6 +216,7 @@ class LogStash::Pipeline
         end
         events.each do |event|
           next if event.cancelled?
+          out_rate.mark
           @filter_to_output.push(event)
         end
       end
