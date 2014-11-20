@@ -25,7 +25,7 @@ module LogStash
   SHUTDOWN = :shutdown
 
   @metrics_registry = MetricRegistry.new
-  @jmx = JmxReporter.forRegistry(@metrics_registry).build()
+  @jmx = JmxReporter.forRegistry(@metrics_registry).inDomain('logstash').build
   
   class << self
     attr_accessor :metrics_registry, :jmx

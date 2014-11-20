@@ -190,6 +190,8 @@ class LogStash::Pipeline
 
   def filterworker
     LogStash::Util::set_thread_name("|worker")
+    LogStash.metrics_registry.register("|worker-#{Thread.current.object_id}.state", PluginStateGauge.new)
+    
     begin
       while true
         event = @input_to_filter.pop
@@ -295,3 +297,16 @@ class LogStash::Pipeline
     end
   end # def filter_flusher
 end # class Pipeline
+
+class PluginStateGauge
+    include Gauge
+    
+    def getValue
+        value = 'Unknown'
+        if Thread.current[:watchdog]
+            value = "Time: #{Thread.current[:watchdog]}, State: #{Thread.current[:watchdog_state].inspect}";
+        end
+        value
+    end
+end
+
