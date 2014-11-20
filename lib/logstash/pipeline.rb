@@ -190,11 +190,15 @@ class LogStash::Pipeline
 
   def filterworker
     LogStash::Util::set_thread_name("|worker")
-    LogStash.metrics_registry.register("|worker-#{Thread.current.object_id}.state", PluginStateGauge.new)
+    state_gauge = PluginStateGauge.new
+    LogStash.metrics_registry.register("|worker-#{Thread.current.object_id}.lastEvent", state_gauge)
+    process_rate = LogStash.metrics_registry.meter("|worker-#{Thread.current.object_id}.rate")
     
     begin
       while true
         event = @input_to_filter.pop
+        state_gauge.update(event)
+        process_rate.mark
         if event == LogStash::ShutdownSignal
           @input_to_filter.push(event)
           break
@@ -301,12 +305,14 @@ end # class Pipeline
 class PluginStateGauge
     include Gauge
     
+    @event = nil
+    
+    def update(event)
+       @event = event
+    end
+    
     def getValue
-        value = 'Unknown'
-        if Thread.current[:watchdog]
-            value = "Time: #{Thread.current[:watchdog]}, State: #{Thread.current[:watchdog_state].inspect}";
-        end
-        value
+        @event? @event['message'].to_s : 'Unknown'
     end
 end
 
